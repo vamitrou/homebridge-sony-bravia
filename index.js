@@ -1,10 +1,10 @@
+var request = require('request');
+
+var Accessory, Service, Characteristic;
 
 var MAX_VOL = 20;
 var DEFAULT_VOL = 8;
 var CUR_VOL;
-
-var request = require('request');
-var Accessory, Service, Characteristic;
 
 module.exports = function(homebridge) {
     Accessory = homebridge.platformAccessory;
@@ -110,7 +110,7 @@ SonyBravia.prototype = {
                 })
             }, function (error, response, body) {
                 var json = JSON.parse(body);
-                if (error || response.statusCode != 200) {
+                if (error || json.error || response.statusCode != 200) {
                     if (json.error) {
                         if (json.error[0] == 40005) {
                             log.debug('getVolume: Display is turned off');
@@ -124,7 +124,7 @@ SonyBravia.prototype = {
                 }
                 else {
                     CUR_VOL = json.result[0][0].volume;
-                    log.debug('Current volume: ' + CUR_VOL);
+                    log.error('Current volume: ' + CUR_VOL);
                 }
                 callback();
             });
@@ -132,6 +132,10 @@ SonyBravia.prototype = {
 
     setVolume: function(value, callback) {
         var log = this.log;
+
+        log.error(value);
+        value = Math.round(MAX_VOL / 100 * value);
+        log.error("converted value %d", value);
 
         if (value >= MAX_VOL) {
             value = DEFAULT_VOL;
